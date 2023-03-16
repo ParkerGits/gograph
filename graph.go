@@ -8,9 +8,9 @@ import (
 )
 
 type Graph interface {
-	// Calls f for every edge in the graph.
+	// Iterates through all edges in the graph, calling f for each edge.
 	ForEachEdge(f func(node, neighbor, weight int))
-	// Calls f for every edge incident to node in the graph.
+	// Iterates through all edges incident to node in the graph, calling f for each edge.
 	ForEachIncidentEdge(node int, f func(node, neighbor, weight int))
 	// Returns true if some edge in the graph satisfies the predicate f. Returns false otherwise.
 	SomeEdge(f func(node, neighbor, weight int) bool) bool
@@ -126,6 +126,7 @@ func BFSDo(g Graph, startNode int, f func(node, neighbor, weight int)) {
 	}
 }
 
+// Runs reduce using the BFS tree as an iterator. Similar to JavaScript array reduce method.
 func BFSReduce[T any](g Graph, startNode int, f func(node, neighbor, weight int, accumulator T) T, initialValue T) T {
 	retVal := initialValue
 	visited := make([]bool, g.Len())
@@ -145,10 +146,12 @@ func BFSReduce[T any](g Graph, startNode int, f func(node, neighbor, weight int,
 	return retVal
 }
 
+// Returns the DFS Tree Edge List generated from iterative DFS starting at node 0.
 func DFS(g Graph) *[][2]int {
 	return DFSAt(g, 0)
 }
 
+// Returns the DFS Tree Edge List generated from iterative DFS starting at startNode.
 func DFSAt(g Graph, startNode int) *[][2]int {
 	edgeList := DFSReduce(g, startNode, func(node, neighbor, weight int, accumulator [][2]int) [][2]int {
 		return append(accumulator, [2]int{node, neighbor})
@@ -156,6 +159,7 @@ func DFSAt(g Graph, startNode int) *[][2]int {
 	return &edgeList
 }
 
+// Calls f on every edge in the (iterative) DFS Tree.
 func DFSDo(g Graph, startNode int, f func(node, neighbor, weight int)) {
 	explored := make([]bool, g.Len())
 	// parents[u][0] gives parent node of u
@@ -179,6 +183,7 @@ func DFSDo(g Graph, startNode int, f func(node, neighbor, weight int)) {
 	}
 }
 
+// Runs reduce using the (iterative) DFS tree as an iterator. Similar to JavaScript array reduce method.
 func DFSReduce[T any](g Graph, startNode int, f func(node, neighbor, weight int, accumulator T) T, initialValue T) T {
 	// parents[u][0] gives parent node of u
 	// parents[u][1] gives weight of edge
@@ -204,10 +209,12 @@ func DFSReduce[T any](g Graph, startNode int, f func(node, neighbor, weight int,
 	return retVal
 }
 
+// Returns the DFS Tree Edge List generated from recursive DFS starting at node 0.
 func DFSRecursive(g Graph) *[][2]int {
 	return DFSRecursiveAt(g, 0)
 }
 
+// Returns the DFS Tree Edge List generated from recursive DFS starting at startNode.
 func DFSRecursiveAt(g Graph, startNode int) *[][2]int {
 	edgeList := DFSRecursiveReduce(g, startNode, func(node, neighbor, weight int, accumulator [][2]int) [][2]int {
 		return append(accumulator, [2]int{node, neighbor})
@@ -215,6 +222,7 @@ func DFSRecursiveAt(g Graph, startNode int) *[][2]int {
 	return &edgeList
 }
 
+// Calls f on every edge in the (recursive) DFS Tree.
 func DFSRecursiveDo(g Graph, startNode int, f func(node, neighbor, weight int)) {
 	explored := make([]bool, g.Len())
 	dfsRecursiveDoHelper(g, startNode, f, &explored)
@@ -230,6 +238,7 @@ func dfsRecursiveDoHelper(g Graph, node int, f func (node, neighbor, weight int)
 	})
 }
 
+// Runs reduce using the (recursive) DFS tree as an iterator. Similar to JavaScript array reduce method.
 func DFSRecursiveReduce[T any](g Graph, startNode int, f func(node, neighbor, weight int, accumulator T) T, initialValue T) T {
 	explored := make([]bool, g.Len())
 	retVal := initialValue
@@ -247,10 +256,12 @@ func dfsRecursiveReduceHelper[T any](g Graph, node int, f func(node, neighbor, w
 	})
 }
 
+// Returns true if the component containing node 0 is bipartite. O(m+n) time complexity.
 func IsBipartite(g Graph) bool {
 	return IsBipartiteAt(g, 0)
 }
 
+// Returns true if the component containing startNode is bipartite. O(m+n) time complexity.
 func IsBipartiteAt(g Graph, startNode int) bool {
 	const (
 		_ int = iota
@@ -283,6 +294,10 @@ func componentFromBFSTreeEdges(bfsTreeEdges *[][2]int) *gods.Set[int] {
 	return component;
 }
 
+// Returns true if the graph is strongly connected.
+// Based on the following theorem: 
+// If u and v are mutually reachable, and v and w are mutually reachable, then u and w are mutually reachable.
+// O(m+n) time complexity.
 func IsStronglyConnected(g Graph) bool {
 	gRev := g.Reverse();
 	gRevComponent := componentFromBFSTreeEdges(BFS(g))
@@ -305,10 +320,16 @@ func IsStronglyConnected(g Graph) bool {
 	return gComponent.Len() == gRevComponent.Len()
 }
 
+// Returns true if DFS ever visits the same node via different paths.
+// This occurs iff undirected graph has a cycle.
+// O(m+n) time complexity.
 func UndirectedHasCycle(g Graph) bool {
 	return UndirectedHasCycleAt(g, 0)
 }
 
+// Returns true if DFS starting at startNode ever visits the same node via different paths.
+// This occurs iff undirected graph has a cycle.
+// O(m+n) time complexity.
 func UndirectedHasCycleAt(g Graph, startNode int) bool {
 	// Graph has cycle if DFS ever visits the same node via two different paths
 	// i.e., the same node is pushed onto the stack twice
@@ -337,11 +358,14 @@ func UndirectedHasCycleAt(g Graph, startNode int) bool {
 	return false
 }
 
-// Returns a cycle if the given undirected graph has one, returns nil otherwise.
+// Returns a cycle if the component containing node 0 in the given undirected graph has one, returns nil otherwise.
+// O(m+n) time complexity.
 func UndirectedGetCycle(g Graph) *[]int {
 	return UndirectedGetCycleAt(g, 0)
 }
 
+// Returns a cycle if the component containing startNode in the given undirected graph has one, returns nil otherwise.
+// O(m+n) time complexity.
 func UndirectedGetCycleAt(g Graph, startNode int) *[]int {
 	bfsTree := NewAdjList(g.Len())
 	// build the BFS tree
@@ -357,15 +381,16 @@ func UndirectedGetCycleAt(g Graph, startNode int) *[]int {
 	if edge != nil {
 		// let u and v be the ends of such an edge
 		// simple cycle given by the least-edges-path from u to v
-		return LeastEdgesPath(g, edge[0], edge[1]).Elements()
+		return LeastEdgesPath(g, edge[0], edge[1])
 	}
 
 	// at this point, graph has no cycles
 	return nil
 }
 
-// 
-func LeastEdgesPath(g Graph, startNode, endNode int) *gods.Stack[int] {
+// Returns the path of least edges from startNode to endNode.
+// O(m+n) time complexity.
+func LeastEdgesPath(g Graph, startNode, endNode int) *[]int {
 	// BFS, but keep track of parents in the BFS tree
 	if !g.ValidEdge(startNode, endNode) {
 		panic(fmt.Sprintf("Edge %v-%v out of range", startNode, endNode))
@@ -386,7 +411,7 @@ func LeastEdgesPath(g Graph, startNode, endNode int) *gods.Stack[int] {
 			return false
 		})
 		if foundEndNode {
-			return pathFromParents(startNode, endNode, parents)
+			return pathFromParents(startNode, endNode, parents).Elements()
 		}
 	}
 	return nil
@@ -407,8 +432,9 @@ func pathFromParents(startNode, endNode int, parents []int) *gods.Stack[int] {
 	return path
 }
 
-// Returns distance of shortest paths from startNode to each node in graph
-// distances[node] = costOfShortestPath
+// Returns distance of shortest paths from startNode to each node in graph where distances[node] = costOfShortestPath.
+// Uses Dijkstra's shortest path algorithm with a binary heap data structure.
+// O(mlogn) time complexity.
 func DijkstraShortestPathCosts(g Graph, startNode int) *[]int {
 	distances := make([]int, g.Len())
 	visited := make([]bool, g.Len())
@@ -438,7 +464,9 @@ func DijkstraShortestPathCosts(g Graph, startNode int) *[]int {
 	return &distances
 }
 
-// return the path from startNode to endNode for which cost is minimized
+// Returns the path from startNode to endNode for which cost is minimized
+// Uses Dijkstra's shortest path algorithm with a binary heap data structure.
+// O(mlogn) time complexity.
 func DijkstraShortestPath(g Graph, startNode, endNode int) *[]int {
 	if !g.ValidEdge(startNode, endNode) {
 		panic(fmt.Sprintf("Edge %v-%v out of range", startNode, endNode))
@@ -475,11 +503,17 @@ func DijkstraShortestPath(g Graph, startNode, endNode int) *[]int {
 	// This occurs if there was no path from startNode to endNode
 	return nil
 }
-// returns the edges of the minimum spanning tree and the total cost, using Prim's Algorithm
+
+// Returns the edges of the minimum spanning tree for the component containing node 0 and its total cost.
+// Uses Prim's Algorithm with a binary heap data structure.
+// O(mlogn) time complexity.
 func PrimMST(g Graph) (*[][2]int, int) {
 	return PrimMSTAt(g, 0)
 }
 
+// Returns the edges of the minimum spanning tree for the component containing startNode and its total cost.
+// Uses Prim's Algorithm with a binary heap data structure.
+// O(mlogn) time complexity.
 func PrimMSTAt(g Graph, startNode int) (*[][2]int, int) {
 	mstEdges := gods.NewQueue[[2]int]()
 	totalCost := 0
@@ -511,7 +545,9 @@ func PrimMSTAt(g Graph, startNode int) (*[][2]int, int) {
 	return mstEdges.Elements(), totalCost
 }
 
-// returns the edges of the minimum spanning tree and the total cost, using Kruskal's Algorithm
+// Returns the edges of the minimum spanning tree for the graph and its total cost.
+// Uses Kruskal's Algorithm.
+// O(mlogn) time complexity.
 func KruskalMST(g Graph) (*[][2]int, int) {
 	mstEdges := gods.NewQueue[[2]int]()
 	totalCost := 0
@@ -532,7 +568,7 @@ func KruskalMST(g Graph) (*[][2]int, int) {
 	return mstEdges.Elements(), totalCost
 }
 
-// returns edges in the k-clustering of maximum possible spacing
+// Returns the edges in the graph's K-Clustering of maximum possible spacing.
 func KClustering(g Graph, k int) *[][2]int {
 	// Kruskal's gives us MST edges sorted by weight
 	sortedEdges, _ := KruskalMST(g)
@@ -541,16 +577,15 @@ func KClustering(g Graph, k int) *[][2]int {
 	return &kCluster
 }
 
-/*
-If no negative cycles, returns 
-path from startNode to endNode,
-cost of the shortest path from every node to endNode,
-false.
-If graph has negative cycle, returns
-nodes leading up to negative cycle,
-nil,
-true.
- */
+// The Bellman-Ford Shortest Path Algorithm. O(mn) time complexity, O(n) space complexity.
+// If graph has no negative cycle, returns
+// 1) path from startNode to endNode,
+// 2) cost of the shortest path from every node to endNode,
+// 3) false.
+// If graph has negative cycle, returns
+// 1) nodes leading up to negative cycle,
+// 2) nil,
+// 3) true.
 func BellmanFordShortestPath(g Graph, startNode, endNode int) (*[]int, *[]int, bool) {
 	numNodes := g.Len()
 	shortestPathCost := make([]int, numNodes)
