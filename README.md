@@ -14,7 +14,7 @@ go get -u github.com/ParkerGits/gograph@latest
 
 The `gograph` library two graph types: AdjMat (Adjacency Matrix) and AdjList (Adjacency List). Both graph types come with functional-style iterator methods (e.g., ForEachEdge, FindEdge, and SomeEdge).
 
-Implements a Graph interface for use in the following supported algorithms:
+Implements a Graph interface and the following supported algorithms:
 
 - Breadth-First Search
 - Iterative Depth-First Search
